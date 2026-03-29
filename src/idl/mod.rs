@@ -5,18 +5,54 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Idl {
     pub address: String,
     pub metadata: IdlMetadata,
-    #[serde(default)]
     pub instructions: Vec<IdlInstruction>,
-    #[serde(default)]
     pub accounts: Vec<IdlAccountType>,
-    #[serde(default)]
     pub types: Vec<IdlTypeDef>,
-    #[serde(default)]
     pub events: Vec<IdlEvent>,
+}
+
+impl<'de> Deserialize<'de> for Idl {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let v = Value::deserialize(deserializer)?;
+
+        let address = v.get("address")
+            .and_then(|a| a.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        let metadata = if let Some(m) = v.get("metadata") {
+            serde_json::from_value(m.clone()).map_err(serde::de::Error::custom)?
+        } else {
+            IdlMetadata {
+                name: v.get("name").and_then(|n| n.as_str()).unwrap_or("unknown").to_string(),
+                version: v.get("version").and_then(|n| n.as_str()).unwrap_or("").to_string(),
+                spec: None,
+                description: None,
+            }
+        };
+
+        let instructions = v.get("instructions")
+            .map(|x| serde_json::from_value(x.clone()).unwrap_or_default())
+            .unwrap_or_default();
+
+        let accounts = v.get("accounts")
+            .map(|x| serde_json::from_value(x.clone()).unwrap_or_default())
+            .unwrap_or_default();
+
+        let types = v.get("types")
+            .map(|x| serde_json::from_value(x.clone()).unwrap_or_default())
+            .unwrap_or_default();
+
+        let events = v.get("events")
+            .map(|x| serde_json::from_value(x.clone()).unwrap_or_default())
+            .unwrap_or_default();
+
+        Ok(Idl { address, metadata, instructions, accounts, types, events })
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

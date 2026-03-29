@@ -170,7 +170,7 @@ Change `PROGRAM_ID` in `.env` to any Anchor program that publishes its IDL on-ch
 
 ```env
 # Meteora DLMM
-PROGRAM_ID=LBUZKhRxPF3XUpBCjp4YzTKgLLjToqA6p6nkNxNwHMbU
+PROGRAM_ID=LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo
 
 # Drift Protocol
 PROGRAM_ID=dRiftyHA39MWEi3m9aunc5MzRF1JYuBsbn6VPcn33UH

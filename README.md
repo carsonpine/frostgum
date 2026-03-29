@@ -12,29 +12,29 @@ Built for the [Superteam Ukraine bounty](https://earn.superteam.fun/).
 flowchart TD
     A([Start]) --> B[Load IDL\nfrom file or on-chain]
     B --> C[Generate dynamic schema\nDDL from IDL types]
-    C --> D[Apply tables to PostgreSQL\nix_{label}_{name} / acct_{label}_{name}]
+    C --> D["Apply tables to PostgreSQL\nix_label_name / acct_label_name"]
     D --> E{Index Mode}
 
     E -->|batch| F[Backfill\nfetch historical signatures\npaginate backwards]
     E -->|realtime| G[Backfill cold start\nthen subscribe]
 
-    G --> H[WebSocket logsSubscribe\nmentions program_id]
+    G --> H["WebSocket logsSubscribe\nmentions program_id"]
 
     F --> I[Fetch transaction\nvia RPC]
     H --> I
 
-    I --> J[Match 8-byte discriminator\nsha256 global:name or IDL-provided]
+    I --> J["Match 8-byte discriminator\nsha256(global:name) or IDL-provided"]
     J -->|instruction match| K[Borsh decode args\nrecursive type resolver]
-    J -->|account match| L[Decode account state\nsha256 account:Name discriminator]
+    J -->|account match| L["Decode account state\nsha256(account:Name) discriminator"]
 
-    K --> M[INSERT into ix_ table\ndynamic PgArguments binding]
+    K --> M["INSERT into ix_ table\ndynamic PgArguments binding"]
     L --> N[UPSERT into acct_ table\nby address]
 
-    M --> O[Checkpoint\nlast_slot in DB]
+    M --> O[Checkpoint last_slot in DB]
     N --> O
 
-    O --> P[REST API :3000\nAxum]
-    P --> Q[Dashboard\nfrostgum UI]
+    O --> P[REST API :3000 Axum]
+    P --> Q[Dashboard frostgum UI]
 ```
 
 ---

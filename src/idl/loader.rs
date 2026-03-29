@@ -120,6 +120,9 @@ fn derive_idl_address(program_id: &str) -> Result<String> {
     let program_pubkey = Pubkey::from_str(program_id)
         .with_context(|| format!("invalid program ID: {}", program_id))?;
 
-    let base = Pubkey::find_program_address(&[b"anchor:idl"], &program_pubkey);
-    Ok(base.0.to_string())
+    let (base, _) = Pubkey::find_program_address(&[], &program_pubkey);
+    let idl_address = Pubkey::create_with_seed(&base, "anchor:idl", &program_pubkey)
+        .map_err(|e| anyhow!("failed to derive IDL address: {}", e))?;
+
+    Ok(idl_address.to_string())
 }

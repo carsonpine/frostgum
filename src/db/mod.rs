@@ -18,7 +18,12 @@ pub async fn connect(database_url: &str) -> anyhow::Result<PgPool> {
 
 async fn run_migrations(pool: &PgPool) -> anyhow::Result<()> {
     let sql = include_str!("../../migrations/001_base.sql");
-    sqlx::query(sql).execute(pool).await?;
+    for statement in sql.split(';') {
+        let trimmed = statement.trim();
+        if !trimmed.is_empty() {
+            sqlx::query(trimmed).execute(pool).await?;
+        }
+    }
     tracing::info!("base migrations applied");
     Ok(())
 }

@@ -1,7 +1,8 @@
 use anyhow::{anyhow, Context, Result};
 use rand::Rng;
 use solana_rpc_client::nonblocking::rpc_client::RpcClient as SolanaRpcClient;
-use solana_rpc_client_api::config::{RpcTransactionConfig, RpcSignaturesForAddressConfig};
+use solana_rpc_client::rpc_client::GetConfirmedSignaturesForAddress2Config;
+use solana_rpc_client_api::config::RpcTransactionConfig;
 use solana_rpc_client_api::response::RpcConfirmedTransactionStatusWithSignature;
 use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::pubkey::Pubkey;
@@ -86,17 +87,14 @@ impl RpcClient {
         until: Option<Signature>,
         limit: usize,
     ) -> Result<Vec<RpcConfirmedTransactionStatusWithSignature>> {
-        let config = RpcSignaturesForAddressConfig {
-            before: before.map(|s| s.to_string()),
-            until: until.map(|s| s.to_string()),
-            limit: Some(limit),
-            commitment: Some(CommitmentConfig::confirmed()),
-            min_context_slot: None,
-        };
-
         self.with_retry("getSignaturesForAddress", || {
             let inner = self.inner.clone();
-            let config = config.clone();
+            let config = GetConfirmedSignaturesForAddress2Config {
+                before,
+                until,
+                limit: Some(limit),
+                commitment: Some(CommitmentConfig::confirmed()),
+            };
             async move {
                 inner
                     .get_signatures_for_address_with_config(pubkey, config)

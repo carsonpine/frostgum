@@ -1,9 +1,9 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use serde_json::{json, Value};
 
 use crate::idl::{Idl, IdlAccountType, IdlTypeDefKind};
 
-use super::{ColumnValue, DecodedAccount, DecodedField};
+use super::{DecodedAccount, DecodedField};
 use super::instruction::{decode_value, json_to_column_value};
 
 pub fn try_decode_account(

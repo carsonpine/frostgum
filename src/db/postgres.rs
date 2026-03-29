@@ -3,7 +3,7 @@ use serde_json::Value;
 use sqlx::postgres::PgArguments;
 use sqlx::{Arguments as _, PgPool, Row};
 
-use crate::decoder::{ColumnValue, DecodedAccount, DecodedInstruction};
+use crate::decoder::{DecodedAccount, DecodedInstruction};
 use crate::idl::schema_gen::{instruction_table_name, account_table_name};
 
 pub async fn register_program(
@@ -147,7 +147,6 @@ pub async fn upsert_account(pool: &PgPool, decoded: &DecodedAccount, program_id:
 
     col_names.push("raw".to_string());
     sql_args.push(format!("${}::jsonb", param_idx));
-    param_idx += 1;
 
     col_names.push("updated_at".to_string());
     sql_args.push("NOW()".to_string());

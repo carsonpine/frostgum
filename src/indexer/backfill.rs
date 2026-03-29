@@ -38,7 +38,7 @@ pub async fn run_backfill(ctx: &IndexerContext) -> Result<u64> {
     let mut total_ixs = 0usize;
     let mut total_accts = 0usize;
     let mut page = 0usize;
-    let mut last_processed_slot = from_slot;
+    let mut _last_processed_slot = from_slot;
 
     loop {
         let sigs = ctx
@@ -54,7 +54,7 @@ pub async fn run_backfill(ctx: &IndexerContext) -> Result<u64> {
 
         let oldest_slot_in_batch = sigs
             .last()
-            .and_then(|s| s.slot)
+            .map(|s| s.slot)
             .unwrap_or(u64::MAX);
 
         let relevant: Vec<String> = sigs
@@ -63,11 +63,7 @@ pub async fn run_backfill(ctx: &IndexerContext) -> Result<u64> {
                 if s.err.is_some() {
                     return false;
                 }
-                if let Some(slot) = s.slot {
-                    slot >= from_slot && slot <= current_slot
-                } else {
-                    false
-                }
+                s.slot >= from_slot && s.slot <= current_slot
             })
             .map(|s| s.signature)
             .collect();
@@ -85,7 +81,7 @@ pub async fn run_backfill(ctx: &IndexerContext) -> Result<u64> {
             )
             .await?;
 
-            last_processed_slot = oldest_slot_in_batch;
+            _last_processed_slot = oldest_slot_in_batch;
         }
 
         page += 1;

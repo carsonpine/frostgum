@@ -45,7 +45,7 @@ pub async fn run_aggregation(
     match metric {
         "count" => {
             if let Some(window) = &query.window {
-                let interval = parse_window_interval(window)?;
+                let _interval = parse_window_interval(window)?;
                 let bucket_seconds = interval_to_seconds(window)?;
 
                 let group_expr = format!("(slot / {}) * {}", bucket_seconds / 400, bucket_seconds / 400);

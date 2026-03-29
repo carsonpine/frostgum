@@ -77,7 +77,7 @@ async fn subscribe_loop(ctx: &IndexerContext) -> Result<()> {
 
     let mut subscription_id: Option<u64> = None;
     let ping_interval = Duration::from_secs(30);
-    let mut last_ping = tokio::time::Instant::now();
+    let mut _last_ping = tokio::time::Instant::now();
 
     loop {
         let timeout = tokio::time::sleep(ping_interval);
@@ -110,7 +110,7 @@ async fn subscribe_loop(ctx: &IndexerContext) -> Result<()> {
             _ = &mut timeout => {
                 write.send(Message::Ping(vec![])).await
                     .map_err(|e| anyhow!("failed to send ping: {}", e))?;
-                last_ping = tokio::time::Instant::now();
+                _last_ping = tokio::time::Instant::now();
             }
         }
     }
@@ -154,7 +154,7 @@ async fn handle_ws_message(
         tracing::debug!(sig = %signature, slot, "received log notification");
 
         match ctx.rpc.get_transaction(signature).await? {
-            Some(tx) => {
+            Some(_tx) => {
                 let sigs = vec![signature.to_string()];
                 if let Err(e) = batch::index_signatures(ctx, &sigs).await {
                     tracing::warn!(sig = %signature, error = %e, "failed to index realtime tx");

@@ -129,13 +129,13 @@ pub async fn run_batch(ctx: &IndexerContext) -> Result<()> {
                 if s.err.is_some() {
                     return false;
                 }
-                if let (Some(slot_start), Some(sig_slot)) = (start_slot, s.slot) {
-                    if sig_slot < slot_start {
+                if let Some(slot_start) = start_slot {
+                    if s.slot < slot_start {
                         return false;
                     }
                 }
-                if let (Some(slot_end), Some(sig_slot)) = (end_slot, s.slot) {
-                    if sig_slot > slot_end {
+                if let Some(slot_end) = end_slot {
+                    if s.slot > slot_end {
                         return false;
                     }
                 }
@@ -157,7 +157,7 @@ pub async fn run_batch(ctx: &IndexerContext) -> Result<()> {
             "batch page indexed"
         );
 
-        if let Some(end) = end_slot {
+        if let Some(_end) = end_slot {
             if let Ok(sig) = Signature::from_str(&last_sig_str) {
                 before_sig = Some(sig);
             }

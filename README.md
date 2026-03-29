@@ -6,6 +6,22 @@ Built for the [Superteam Ukraine bounty](https://earn.superteam.fun/).
 
 ---
 
+## Bounty requirements
+
+| Requirement | Implementation |
+|---|---|
+| Dynamic schema from any Anchor IDL | `src/idl/schema_gen.rs` — DDL generated at runtime per IDL |
+| Decode instructions + account states | `src/decoder/instruction.rs` + `src/decoder/account.rs` |
+| Batch mode | `INDEX_MODE=batch` — pages `getSignaturesForAddress2` with checkpoint |
+| Real-time WebSocket with cold start | `INDEX_MODE=realtime` — backfill first, then `logsSubscribe` |
+| Exponential backoff + retry | `src/rpc/mod.rs` — `with_retry()` with jitter on every RPC call |
+| Graceful shutdown | `main.rs` — `tokio::select!` on SIGINT, aborts indexer cleanly |
+| Advanced API with aggregation | `GET /programs/:id/instructions/:name/aggregate` — SUM/AVG/COUNT/MIN/MAX |
+| Docker Compose setup | `docker-compose.yml` — pulls from GHCR, postgres healthcheck |
+| Structured logging | `src/logging.rs` — JSON-formatted via `tracing` |
+
+---
+
 ## How it works
 
 ```mermaid
@@ -62,6 +78,11 @@ flowchart LR
 
 ## Quick start
 
+### Prerequisites
+
+- [Docker + Docker Compose](https://docs.docker.com/get-docker/)
+- A Solana RPC endpoint — [Helius](https://helius.dev) recommended (free tier works)
+
 ### 1. Clone and configure
 
 ```bash
@@ -74,8 +95,14 @@ Edit `.env`:
 
 ```env
 HELIUS_RPC_URL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
+HELIUS_WS_URL=wss://mainnet.helius-rpc.com/?api-key=YOUR_KEY
+
+POSTGRES_URL=postgres://postgres:postgres@postgres:5432/frostgum
+
 PROGRAM_ID=JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4
+
 INDEX_MODE=realtime
+API_PORT=3000
 ```
 
 ### 2. Run with Docker Compose
@@ -84,9 +111,37 @@ INDEX_MODE=realtime
 docker compose up
 ```
 
-That's it. Frostgum pulls the pre-built image from GHCR, spins up Postgres, fetches the IDL on-chain, generates the schema, and starts indexing.
+Frostgum pulls the pre-built image from GHCR, spins up Postgres, fetches the IDL on-chain, generates the schema, and starts indexing. Logs will show:
 
-Open `http://localhost:3000` for the dashboard.
+```
+INFO frostgum: IDL loaded program_name=jupiter instructions=17 account_types=1
+INFO frostgum::db::schema: schema applied tables=18
+INFO frostgum::indexer::backfill: backfill complete total_ixs=57
+INFO frostgum::indexer::realtime: WebSocket subscription confirmed subscription_id=...
+```
+
+Open `http://localhost:3000` for the live dashboard.
+
+---
+
+## Building from source
+
+Requires Rust 1.75+ and a running PostgreSQL instance.
+
+```bash
+# install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# start postgres (or use existing)
+docker compose up postgres -d
+
+# configure
+cp .env.example .env
+# set POSTGRES_URL=postgres://postgres:postgres@localhost:5432/frostgum
+
+# run
+cargo run --release
+```
 
 ---
 
@@ -124,6 +179,53 @@ GET  /programs/:id/accounts                                 IDL account type lis
 GET  /programs/:id/accounts/:type?limit&offset             decoded account rows
 GET  /programs/:id/accounts/:type/:address                  single account by address
 POST /api/sql                                               raw SELECT query
+```
+
+### Example: query decoded swaps
+
+```bash
+curl "http://localhost:3000/programs/JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4/instructions/route?limit=2&order=desc"
+```
+
+```json
+{
+  "instruction": "route",
+  "count": 2,
+  "data": [
+    {
+      "id": 138,
+      "signature": "5XCpzLK...",
+      "slot": 409682607,
+      "signer": "2iWNKmjB...",
+      "in_amount": 100271,
+      "quoted_out_amount": 143937038,
+      "slippage_bps": 10000,
+      "platform_fee_bps": 0,
+      "route_plan": [{"swap": "RaydiumClmm", "percent": 100}]
+    }
+  ]
+}
+```
+
+### Example: aggregation
+
+```bash
+# total volume routed through Jupiter (sum of in_amount across all route instructions)
+curl "http://localhost:3000/programs/JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4/instructions/route/aggregate?fn=sum&col=in_amount"
+```
+
+```json
+{ "fn": "sum", "col": "in_amount", "result": 48271904827 }
+```
+
+Supported aggregation functions: `sum`, `avg`, `count`, `min`, `max`.
+
+### Example: raw SQL
+
+```bash
+curl -X POST http://localhost:3000/api/sql \
+  -H "Content-Type: application/json" \
+  -d '{"sql": "SELECT signer, COUNT(*) as swaps, SUM(in_amount) as volume FROM ix_jup6lkbzbjS1_route GROUP BY signer ORDER BY volume DESC LIMIT 5"}'
 ```
 
 ---

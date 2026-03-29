@@ -9,32 +9,24 @@ Built for the [Superteam Ukraine bounty](https://earn.superteam.fun/).
 ## How it works
 
 ```mermaid
-flowchart TD
-    A([Start]) --> B[Load IDL\nfrom file or on-chain]
-    B --> C[Generate dynamic schema\nDDL from IDL types]
-    C --> D["Apply tables to PostgreSQL\nix_label_name / acct_label_name"]
-    D --> E{Index Mode}
+flowchart LR
+    A([Start]) --> B[Load IDL] --> C[Gen Schema] --> D[(Postgres)]
+    D --> E{Mode}
 
-    E -->|batch| F[Backfill\nfetch historical signatures\npaginate backwards]
-    E -->|realtime| G[Backfill cold start\nthen subscribe]
+    E -->|batch| F[Backfill RPC]
+    E -->|realtime| G[Backfill + WS]
 
-    G --> H["WebSocket logsSubscribe\nmentions program_id"]
+    F --> H[Decode Tx]
+    G --> H
 
-    F --> I[Fetch transaction\nvia RPC]
-    H --> I
+    H -->|instruction| I[Borsh decode\nINSERT ix_]
+    H -->|account| J[Borsh decode\nUPSERT acct_]
 
-    I --> J["Match 8-byte discriminator\nsha256(global:name) or IDL-provided"]
-    J -->|instruction match| K[Borsh decode args\nrecursive type resolver]
-    J -->|account match| L["Decode account state\nsha256(account:Name) discriminator"]
+    I --> K[Checkpoint]
+    J --> K
 
-    K --> M["INSERT into ix_ table\ndynamic PgArguments binding"]
-    L --> N[UPSERT into acct_ table\nby address]
-
-    M --> O[Checkpoint last_slot in DB]
-    N --> O
-
-    O --> P[REST API :3000 Axum]
-    P --> Q[Dashboard frostgum UI]
+    K --> L[REST API]
+    L --> M[Dashboard]
 ```
 
 ---

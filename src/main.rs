@@ -56,6 +56,11 @@ async fn main() -> Result<()> {
         "IDL loaded"
     );
 
+    let mut idl = idl;
+    if idl.address.is_empty() {
+        idl.address = config.program_id_str.clone();
+    }
+
     db::schema::apply_schema_for_idl(&pool, &idl).await.map_err(|e| {
         tracing::error!(error = %e, "failed to apply dynamic schema");
         e

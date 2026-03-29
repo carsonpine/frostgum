@@ -83,7 +83,7 @@ pub async fn insert_instruction(
     let mut param_idx = 5usize;
 
     for field in &decoded.args {
-        let col = crate::idl::schema_gen::sanitize_name(&field.name);
+        let col = crate::idl::schema_gen::safe_col_name(&field.name);
         col_names.push(col);
         let cast = field.value.sql_cast_suffix();
         sql_args.push(format!("${}{}", param_idx, cast));
@@ -138,7 +138,7 @@ pub async fn upsert_account(pool: &PgPool, decoded: &DecodedAccount, program_id:
     let mut param_idx = 3usize;
 
     for field in &decoded.fields {
-        let col = crate::idl::schema_gen::sanitize_name(&field.name);
+        let col = crate::idl::schema_gen::safe_col_name(&field.name);
         col_names.push(col);
         let cast = field.value.sql_cast_suffix();
         sql_args.push(format!("${}{}", param_idx, cast));

@@ -55,10 +55,9 @@ fn generate_instruction_table(program_label: &str, ix_name: &str, args: &[IdlFie
     ];
 
     for field in args {
-        let col = sanitize_name(&field.name);
+        let col = safe_col_name(&field.name);
         let sql_type = idl_type_to_sql(&field.ty);
-        let null_constraint = if is_nullable(&field.ty) { "" } else { "" };
-        col_defs.push(format!("{} {}{}", col, sql_type, null_constraint));
+        col_defs.push(format!("{} {}", col, sql_type));
     }
 
     col_defs.push("accounts JSONB NOT NULL DEFAULT '[]'".to_string());
@@ -87,7 +86,7 @@ fn generate_account_table(program_label: &str, account_name: &str, type_def: &Id
 
     if let IdlTypeDefKind::Struct { fields } = &type_def.ty {
         for field in fields {
-            let col = sanitize_name(&field.name);
+            let col = safe_col_name(&field.name);
             let sql_type = idl_type_to_sql(&field.ty);
             col_defs.push(format!("{} {}", col, sql_type));
         }
@@ -127,6 +126,20 @@ fn generate_empty_account_table(program_label: &str, account_name: &str) -> Stri
         table = table,
         cols = cols_sql,
     )
+}
+
+const RESERVED_COLS: &[&str] = &[
+    "id", "signature", "slot", "block_time", "signer", "accounts", "created_at",
+    "address", "slot_updated", "raw", "updated_at",
+];
+
+pub fn safe_col_name(name: &str) -> String {
+    let sanitized = sanitize_name(name);
+    if RESERVED_COLS.contains(&sanitized.as_str()) {
+        format!("arg_{}", sanitized)
+    } else {
+        sanitized
+    }
 }
 
 pub fn sanitize_name(name: &str) -> String {

@@ -304,11 +304,23 @@ pub async fn get_program_stats(
     instruction_names: &[String],
 ) -> Result<Value> {
     let label = crate::idl::schema_gen::program_label(program_id);
+
+    let existing: std::collections::HashSet<String> = sqlx::query(
+        "SELECT table_name FROM information_schema.tables \
+         WHERE table_schema = 'public' AND table_name LIKE 'ix\\_%'"
+    )
+    .fetch_all(pool)
+    .await
+    .unwrap_or_default()
+    .into_iter()
+    .filter_map(|r| r.try_get::<String, _>("table_name").ok())
+    .collect();
+
     let mut instruction_counts = serde_json::Map::new();
 
     for ix_name in instruction_names {
         let table = instruction_table_name(program_id, ix_name);
-        if !is_valid_identifier(&table) {
+        if !is_valid_identifier(&table) || !existing.contains(&table) {
             continue;
         }
 

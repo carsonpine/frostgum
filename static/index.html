@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frostgum — Universal Solana Indexer</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="header-inner">
+        <h1>frostgum</h1>
+        <span class="subtitle">Universal Solana Indexer</span>
+        <div id="status-badge" class="badge badge-loading">connecting...</div>
+      </div>
+    </header>
+
+    <main>
+      <section id="program-info" class="card hidden">
+        <h2>Program</h2>
+        <div id="program-details"></div>
+      </section>
+
+      <section id="stats-section" class="card hidden">
+        <h2>Instruction Counts</h2>
+        <div id="stats-grid" class="stats-grid"></div>
+      </section>
+
+      <section id="instructions-section" class="card hidden">
+        <h2>Instructions</h2>
+        <div id="instructions-nav" class="tab-nav"></div>
+        <div id="instructions-content"></div>
+      </section>
+
+      <section id="accounts-section" class="card hidden">
+        <h2>Account States</h2>
+        <div id="accounts-nav" class="tab-nav"></div>
+        <div id="accounts-content"></div>
+      </section>
+
+      <section class="card">
+        <h2>SQL Console</h2>
+        <div class="sql-console">
+          <textarea id="sql-input" rows="4" placeholder="SELECT * FROM ..."></textarea>
+          <button id="sql-run-btn">Run Query</button>
+        </div>
+        <div id="sql-result"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

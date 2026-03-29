@@ -18,7 +18,8 @@ services:
       retries: 10
 
   frostgum:
-    build: .
+    image: ghcr.io/carsonpine/frostgum:latest
+    pull_policy: always
     env_file:
       - .env
     environment:

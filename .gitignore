@@ -1,1 +1,4 @@
 bu.txt
+/target
+.env
+*.sbom

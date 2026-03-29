@@ -63,15 +63,20 @@ impl ColumnValue {
         args: &mut sqlx::postgres::PgArguments,
     ) -> anyhow::Result<()> {
         use sqlx::Arguments;
+        macro_rules! add {
+            ($v:expr) => {
+                args.add($v).map_err(|e| anyhow::anyhow!("{}", e))?
+            };
+        }
         match self {
-            ColumnValue::Int(v) => args.add(*v)?,
-            ColumnValue::BigInt(v) => args.add(*v)?,
-            ColumnValue::Float(v) => args.add(*v)?,
-            ColumnValue::Bool(v) => args.add(*v)?,
-            ColumnValue::Text(v) => args.add(v.clone())?,
-            ColumnValue::Bytes(v) => args.add(v.clone())?,
-            ColumnValue::Json(v) => args.add(sqlx::types::Json(v.clone()))?,
-            ColumnValue::Null => args.add(None::<String>)?,
+            ColumnValue::Int(v) => add!(*v),
+            ColumnValue::BigInt(v) => add!(*v),
+            ColumnValue::Float(v) => add!(*v),
+            ColumnValue::Bool(v) => add!(*v),
+            ColumnValue::Text(v) => add!(v.clone()),
+            ColumnValue::Bytes(v) => add!(v.clone()),
+            ColumnValue::Json(v) => add!(sqlx::types::Json(v.clone())),
+            ColumnValue::Null => add!(None::<String>),
         }
         Ok(())
     }

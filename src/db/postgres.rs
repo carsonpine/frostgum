@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Context, Result};
 use serde_json::Value;
 use sqlx::postgres::PgArguments;
-use sqlx::{Arguments, PgPool, Row};
+use sqlx::{Arguments as _, PgPool, Row};
 
 use crate::decoder::{ColumnValue, DecodedAccount, DecodedInstruction};
 use crate::idl::schema_gen::{instruction_table_name, account_table_name};
@@ -100,17 +100,23 @@ pub async fn insert_instruction(
         table, cols, vals
     );
 
+    macro_rules! add {
+        ($args:expr, $v:expr) => {
+            $args.add($v).map_err(|e| anyhow::anyhow!("{}", e))?
+        };
+    }
+
     let mut args = PgArguments::default();
-    args.add(decoded.signature.clone())?;
-    args.add(decoded.slot as i64)?;
-    args.add(decoded.block_time)?;
-    args.add(decoded.signer.clone())?;
+    add!(args, decoded.signature.clone());
+    add!(args, decoded.slot as i64);
+    add!(args, decoded.block_time);
+    add!(args, decoded.signer.clone());
 
     for field in &decoded.args {
         field.value.add_to_args(&mut args)?;
     }
 
-    args.add(sqlx::types::Json(decoded.accounts.clone()))?;
+    add!(args, sqlx::types::Json(decoded.accounts.clone()));
 
     sqlx::query_with(&sql, args)
         .execute(pool)
@@ -162,15 +168,21 @@ pub async fn upsert_account(pool: &PgPool, decoded: &DecodedAccount, program_id:
         table, cols, vals, update_set, table
     );
 
+    macro_rules! add {
+        ($args:expr, $v:expr) => {
+            $args.add($v).map_err(|e| anyhow::anyhow!("{}", e))?
+        };
+    }
+
     let mut args = PgArguments::default();
-    args.add(decoded.address.clone())?;
-    args.add(decoded.slot_updated as i64)?;
+    add!(args, decoded.address.clone());
+    add!(args, decoded.slot_updated as i64);
 
     for field in &decoded.fields {
         field.value.add_to_args(&mut args)?;
     }
 
-    args.add(sqlx::types::Json(decoded.raw.clone()))?;
+    add!(args, sqlx::types::Json(decoded.raw.clone()));
 
     sqlx::query_with(&sql, args)
         .execute(pool)
@@ -201,7 +213,7 @@ pub async fn query_instructions(
             return Err(anyhow!("invalid column name: {}", col));
         }
         where_clauses.push(format!("{} = ${}", col, param_idx));
-        args.add(val.clone())?;
+        args.add(val.clone()).map_err(|e| anyhow!("{}", e))?;
         param_idx += 1;
     }
 

@@ -18,6 +18,16 @@ pub async fn health() -> impl IntoResponse {
     Json(json!({ "status": "ok" }))
 }
 
+pub async fn get_meta(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    match postgres::get_meta(&state.pool).await {
+        Ok(meta) => (StatusCode::OK, Json(meta)),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({ "error": e.to_string() })),
+        ),
+    }
+}
+
 pub async fn list_programs(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     match postgres::list_programs(&state.pool).await {
         Ok(programs) => (StatusCode::OK, Json(json!({ "programs": programs }))),

@@ -327,6 +327,28 @@ pub async fn get_program_stats(
     }))
 }
 
+pub async fn get_meta(pool: &PgPool) -> Result<Value> {
+    let slot_row = sqlx::query(
+        "SELECT COALESCE(MAX(value), 0) AS slot FROM checkpoints WHERE key = 'last_slot'"
+    )
+    .fetch_one(pool)
+    .await
+    .context("failed to get current slot")?;
+    let slot: i64 = slot_row.try_get("slot").unwrap_or(0);
+
+    let table_row = sqlx::query(
+        "SELECT COUNT(*) AS cnt FROM information_schema.tables
+         WHERE table_schema = 'public'
+           AND (table_name LIKE 'ix\\_%' OR table_name LIKE 'acct\\_%')"
+    )
+    .fetch_one(pool)
+    .await
+    .context("failed to count tables")?;
+    let tables: i64 = table_row.try_get("cnt").unwrap_or(0);
+
+    Ok(serde_json::json!({ "current_slot": slot, "table_count": tables }))
+}
+
 pub async fn execute_raw_sql(pool: &PgPool, sql: &str) -> Result<Vec<Value>> {
     let rows = sqlx::query(&format!(
         "SELECT row_to_json(t) AS row FROM ({}) t",

@@ -4,50 +4,100 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Frostgum — Universal Solana Indexer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Archivo+Black&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <div id="app">
-    <header>
-      <div class="header-inner">
-        <h1>frostgum</h1>
-        <span class="subtitle">Universal Solana Indexer</span>
-        <div id="status-badge" class="badge badge-loading">connecting...</div>
-      </div>
-    </header>
 
-    <main>
-      <section id="program-info" class="card hidden">
-        <h2>Program</h2>
-        <div id="program-details"></div>
-      </section>
+  <div id="loader">
+    <div class="loader-content">
+      <div class="loader-logo">frostgum</div>
+      <div class="loader-sub">Universal Solana Indexer</div>
+      <div class="spinner"></div>
+    </div>
+  </div>
 
-      <section id="stats-section" class="card hidden">
-        <h2>Instruction Counts</h2>
-        <div id="stats-grid" class="stats-grid"></div>
-      </section>
+  <div id="app" class="hidden">
 
-      <section id="instructions-section" class="card hidden">
-        <h2>Instructions</h2>
-        <div id="instructions-nav" class="tab-nav"></div>
-        <div id="instructions-content"></div>
-      </section>
-
-      <section id="accounts-section" class="card hidden">
-        <h2>Account States</h2>
-        <div id="accounts-nav" class="tab-nav"></div>
-        <div id="accounts-content"></div>
-      </section>
-
-      <section class="card">
-        <h2>SQL Console</h2>
-        <div class="sql-console">
-          <textarea id="sql-input" rows="4" placeholder="SELECT * FROM ..."></textarea>
-          <button id="sql-run-btn">Run Query</button>
+    <nav class="floating-nav">
+      <div class="nav-inner">
+        <div class="nav-brand">frostgum</div>
+        <div class="nav-links">
+          <button class="nav-btn active" data-page="home">Home</button>
+          <button class="nav-btn" data-page="data">Data</button>
         </div>
-        <div id="sql-result"></div>
-      </section>
-    </main>
+        <div class="nav-meta">
+          <span class="meta-item">slot <span id="nav-slot" class="meta-val">—</span></span>
+          <span class="meta-item">tables <span id="nav-tables" class="meta-val">—</span></span>
+          <div id="status-badge" class="badge badge-loading">connecting</div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="page-wrap">
+
+      <div id="page-home" class="page active">
+        <section id="program-info" class="card hidden">
+          <div class="program-header">
+            <div>
+              <div id="program-name" class="program-name"></div>
+              <div id="program-id" class="program-id-display"></div>
+            </div>
+            <div class="program-badges">
+              <span class="pill pill-green">indexed</span>
+            </div>
+          </div>
+        </section>
+
+        <section id="stats-section" class="card hidden">
+          <div class="card-header">
+            <h2>Instruction Counts</h2>
+          </div>
+          <div id="stats-grid" class="stats-grid"></div>
+        </section>
+
+        <section id="main-tabs-section" class="card hidden">
+          <div class="page-tab-nav">
+            <button class="page-tab-btn active" data-tab="instructions">Instructions</button>
+            <button class="page-tab-btn" data-tab="accounts">Account States</button>
+          </div>
+
+          <div id="tab-instructions" class="tab-pane active">
+            <div id="instructions-nav" class="sub-tab-nav"></div>
+            <div id="instructions-content"></div>
+          </div>
+
+          <div id="tab-accounts" class="tab-pane hidden">
+            <div id="accounts-nav" class="sub-tab-nav"></div>
+            <div id="accounts-content"></div>
+          </div>
+        </section>
+      </div>
+
+      <div id="page-data" class="page hidden">
+        <section class="card">
+          <div class="card-header">
+            <h2>Database Tables</h2>
+          </div>
+          <div id="db-tables-list" class="db-tables-grid"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2>SQL Console</h2>
+            <span class="card-hint">SELECT only</span>
+          </div>
+          <div class="sql-console">
+            <textarea id="sql-input" rows="5" placeholder="SELECT * FROM ..."></textarea>
+            <button id="sql-run-btn">Run Query</button>
+          </div>
+          <div id="sql-result"></div>
+        </section>
+      </div>
+
+    </div>
   </div>
 
   <script src="/app.js"></script>

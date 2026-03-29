@@ -29,6 +29,7 @@ pub fn build_router(state: Arc<AppState>) -> Router {
 
     Router::new()
         .route("/health", get(routes::health))
+        .route("/api/meta", get(routes::get_meta))
         .route("/programs", get(routes::list_programs))
         .route("/programs/:program_id/stats", get(routes::get_program_stats))
         .route("/programs/:program_id/instructions", get(routes::list_instructions))

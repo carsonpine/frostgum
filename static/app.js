@@ -31,6 +31,12 @@
       .replace(/"/g, "&quot;");
   }
 
+  function cellStr(val) {
+    if (val === null || val === undefined) return "";
+    if (typeof val === "object") return JSON.stringify(val);
+    return String(val);
+  }
+
   function renderTable(rows) {
     if (!rows || rows.length === 0) return "";
     const keys = Object.keys(rows[0]);
@@ -40,7 +46,7 @@
         (row) =>
           `<tr>${keys
             .map((k) => {
-              const v = row[k] === null || row[k] === undefined ? "" : String(row[k]);
+              const v = cellStr(row[k]);
               return `<td title="${escHtml(v)}">${escHtml(v)}</td>`;
             })
             .join("")}</tr>`
@@ -68,7 +74,7 @@
         grid.innerHTML = entries
           .map(
             ([name, count]) => `
-            <div class="stat-card">
+            <div class="stat-card" data-tooltip="${escHtml(name)}: ${Number(count).toLocaleString()}">
               <div class="stat-name">${escHtml(name)}</div>
               <div class="stat-value">${Number(count).toLocaleString()}</div>
             </div>`
@@ -145,7 +151,7 @@
       grid.innerHTML = entries
         .map(
           ([name, count]) => `
-          <div class="stat-card">
+          <div class="stat-card" data-tooltip="${escHtml(name)}: ${Number(count).toLocaleString()}">
             <div class="stat-name">${escHtml(name)}</div>
             <div class="stat-value">${Number(count).toLocaleString()}</div>
           </div>`
@@ -308,7 +314,7 @@
       const tr = document.createElement("tr");
       tr.innerHTML = keys
         .map((k) => {
-          const v = row[k] === null || row[k] === undefined ? "" : String(row[k]);
+          const v = cellStr(row[k]);
           return `<td title="${escHtml(v)}">${escHtml(v)}</td>`;
         })
         .join("");
